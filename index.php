@@ -6,12 +6,12 @@
   }
   $db = new MyDB();
   if(!$db) {
-    #echo $db->lastErrorMsg();
+    echo $db->lastErrorMsg();
   } else {
     $Table = "CREATE TABLE IF NOT EXISTS Users (
       Id INTEGER PRIMARY KEY AUTOINCREMENT,
       Username TEXT NOT NULL UNIQUE,
-      Password TEXT NOT NULL,
+      Password TEXT NOT NULL
     )";
     $db->exec($Table);
 
