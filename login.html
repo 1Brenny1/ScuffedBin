@@ -1,0 +1,53 @@
+<style>
+    form {
+      width: 100%;
+      max-width: 350px;
+      margin: auto;
+    }
+    form input {
+      width: 100%;
+    }
+    form h1 {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 1em;
+      font-size: 2.5em;
+    }
+
+    .LoginAlert {
+      background-color:#ff5555;
+      width: 100%;
+      height: 25px;
+      margin-bottom: 0.5em;
+      border-radius: 5px;
+    }
+    .LoginAlert p {
+      width: 100%;
+      text-align: center;
+    }
+    .AlertContainer {
+      width: 100%;
+    }
+  </style>
+  <script>
+    if (getCookie("Account") != "") {
+      location.href = "../"
+    }
+  </script>
+  <form method="post">
+    <h1>Login</h1>
+    <input type="text" name="Username" placeholder="Username" required>
+    <input type="password" name="Password" placeholder="Password" required>
+
+    <span class="AlertContainer"></span>
+    <script defer>
+      var LoginAlert = getCookie("LoginAlert")
+      if (LoginAlert != "") {
+        document.getElementsByClassName("AlertContainer")[0].innerHTML += `<div class="LoginAlert"><p>` + decodeURI(LoginAlert) + `</p></div>`
+        setCookie("LoginAlert", "", 0)
+      }
+    </script>
+
+    <input type="submit" name="Type" value="Login" style="width: 49%;">
+    <input type="submit" name="Type" value="Sign Up" style="width: 49%; float: right;">
+  </form>
