@@ -11,13 +11,15 @@
     $Table = "CREATE TABLE IF NOT EXISTS Users (
       Id INTEGER PRIMARY KEY AUTOINCREMENT,
       Username TEXT NOT NULL UNIQUE,
-      Password TEXT NOT NULL
+      Password TEXT NOT NULL,
     )";
     $db->exec($Table);
 
     #$rep = $db->exec("INSERT INTO Users (Username, Password) VALUES('1Brenny1', '69420')");
 
     #echo var_dump($db->querySingle("SELECT * FROM Users WHERE Username='1Brenny1'", true));
+    
+    
 
     if (isset($_POST['Type'])) {
       if ($_POST['Type'] == "Login") {
@@ -25,6 +27,7 @@
         if (count($Login) == 3) {
           if ($Login["Password"] == bin2hex($_POST["Password"])) {
             setcookie("Account",bin2hex($Login["Username"] . "|" . $Login["Password"]), time() + 31536000000, "/");
+            setcookie("Username",$_POST["Username"], time() + 31536000000, "/");
           } else {
             setcookie("LoginAlert","Incorrect Username or Password", time() + 31536000000, "/");
           }
@@ -38,6 +41,7 @@
             if (preg_match("#^[a-zA-Z0-9]+$#", $_POST["Password"])) {
               $db->exec("INSERT INTO Users (Username, Password) VALUES('". bin2hex($_POST["Username"]) ."', '". bin2hex($_POST["Password"]) ."')");
               setcookie("Account",bin2hex($_POST["Username"] . "|" . $_POST["Password"]), time() + 31536000000, "/");
+              setcookie("Username",$_POST["Username"], time() + 31536000000, "/");
             } else {
               setcookie("LoginAlert","Valid Chatacters A-Z and 0-9", time() + 31536000000, "/");
             }
@@ -89,7 +93,7 @@
         `
         var Account = `
         <nav style="display: inline-block; float: right;">
-        <a href="../account">Account</a>
+        <a href="../account/">Account</a>
         </nav>
         `
         if (getCookie("Account")) {
@@ -106,9 +110,11 @@
       $Path = $URL['path'];
 
       $FileName = "home.html";
-
+      
       if ($Path == "/login/") {
         $FileName = "login.html";
+      } elseif ($Path == "/account/") {
+        $FileName = "account.html";
       }
 
       $File = fopen($FileName, "r") or die("Unable to open file!");
