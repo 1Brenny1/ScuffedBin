@@ -8,12 +8,18 @@
   if(!$db) {
     echo $db->lastErrorMsg();
   } else {
-    $Table = "CREATE TABLE IF NOT EXISTS Users (
+    $db->exec("CREATE TABLE IF NOT EXISTS Users (
       Id INTEGER PRIMARY KEY AUTOINCREMENT,
       Username TEXT NOT NULL UNIQUE,
       Password TEXT NOT NULL
-    )";
-    $db->exec($Table);
+    )");
+
+    $db->exec("CREATE TABLE IF NOT EXISTS Posts (
+      Id INTEGER PRIMARY KEY AUTOINCREMENT,
+      CreatorId INTEGER NOT NULL,
+      Title TEXT NOT NULL,
+      Content TEXT NOT NULL
+    )");
 
     #$rep = $db->exec("INSERT INTO Users (Username, Password) VALUES('1Brenny1', '69420')");
 
@@ -92,7 +98,6 @@
       }
     }
     
-    $db->close();
   }
 ?>
 
@@ -155,6 +160,19 @@
         $FileName = "login.html";
       } elseif ($Path == "/account/") {
         $FileName = "account.html";
+      } else if (str_contains($Path, "/post/")) {
+        $SplitPath = explode("/", $Path);
+
+        $PostId = $SplitPath[2];
+          
+        $PostData = $db->querySingle("SELECT * FROM Posts WHERE Id=" . $PostId, true);
+        if (count($PostData) != 0) {
+          $FileName = "post.html";
+          if ($SplitPath[3] == "raw") {
+            $FileName = "rawpost.html";
+          }
+          echo "<script>localStorage.setItem('PostTitle', '". $PostData["Title"] ."'); localStorage.setItem('PostContent', '". $PostData["Content"] ."');</script>";
+        }
       }
 
       $File = fopen($FileName, "r") or die("Unable to open file!");
@@ -164,3 +182,7 @@
     
   </body>
 </html>
+
+<?php
+  $db->close();
+?>
