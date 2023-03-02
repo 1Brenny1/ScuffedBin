@@ -48,7 +48,7 @@
           setcookie("LoginAlert","Username all ready in use", time() + 31536000000, "/");
         }
       } elseif ($_POST["Type"] == "Change Username") {
-        $Account = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex(explode("|", hex2bin($_COOKIE["Account"]))[0]) . "'", true);
+        $Account = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex($_COOKIE["Username"]) . "'", true);
         if (bin2hex($_POST["Password"]) == $Account["Password"]) {
           if (preg_match("#^[a-zA-Z0-9]+$#", $_POST["Username"])) {
             $Check = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex($_POST["Username"]) . "'", true);
@@ -66,17 +66,29 @@
           setcookie("Alert","Change Username|Incorrect Password", time() + 31536000000, "/");
         }
       } else if ($_POST["Type"] == "Change Password") {
-        $Account = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex(explode("|", hex2bin($_COOKIE["Account"]))[0]) . "'", true);
+        $Account = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex($_COOKIE["Username"]) . "'", true);
         if (bin2hex($_POST["Password"]) == $Account["Password"]) {
           if ($_POST["NPassword"] == $_POST["RPassword"]) {
             $db->exec("UPDATE Users SET Password='" . bin2hex($_POST["NPassword"]) . "' WHERE Username='" . $Account["Username"] . "'");
             setcookie("Account",bin2hex($Account["Username"] . "|" . $_POST["NPassword"]), time() + 31536000000, "/");
           } else {
-            setcookie("Alert","Change Username|Passwords do not match", time() + 31536000000, "/");
+            setcookie("Alert","Change Password|Passwords do not match", time() + 31536000000, "/");
           }
         } else {
-          setcookie("Alert","Change Username|Incorrect Password", time() + 31536000000, "/");
+          setcookie("Alert","Change Password|Incorrect Password", time() + 31536000000, "/");
         }
+      } else if ($_POST["Type"] == "Delete Account") {
+        $Account = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex($_COOKIE["Username"]) . "'", true);
+        if (bin2hex($_POST["Password"]) == $Account["Password"]) {
+          $db->exec("DELETE FROM Users WHERE Username = '". bin2hex($_COOKIE["Username"]) ."'");
+          setcookie("Account","", 0, "/");
+          setcookie("Username","", 0, "/");
+        } else {
+          setcookie("Alert","Delete Account|Incorrect Password", time() + 31536000000, "/");
+        }
+      } else if ($_POST["Type"] == "Logout") {
+        setcookie("Account","", 0, "/");
+        setcookie("Username","", 0, "/");
       }
     }
     
@@ -123,7 +135,7 @@
         </nav>
         `
         if (getCookie("Account")) {
-          document.getElementsByTagName("nav")[0].innerHTML += `/ <a href="../my-posts">My Posts</a>`
+          document.getElementsByTagName("nav")[0].innerHTML += `/ <a href="../my-posts">My Posts</a> / <a href="../create-post">Create Post</a>`
           document.getElementsByTagName("Header")[0].innerHTML += Account
         } else {
           document.getElementsByTagName("Header")[0].innerHTML += Login
@@ -135,9 +147,11 @@
       $URL = parse_url("http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
       $Path = $URL['path'];
 
-      $FileName = "home.html";
-      
-      if ($Path == "/login/") {
+      $FileName = "404.html";
+      if ($Path == "" || $Path == "/" || $Path == "/home/") {
+        $FileName = "home.html";
+      }
+      elseif ($Path == "/login/") {
         $FileName = "login.html";
       } elseif ($Path == "/account/") {
         $FileName = "account.html";

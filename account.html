@@ -48,7 +48,6 @@
         document.getElementById("Username").value = getCookie("Username")
 
         var Alert = decodeURI(getCookie("Alert"))
-        console.log(Alert)
         if (Alert != "" && Alert.split("|")[0] == "Change Username") {
           document.getElementById("ChangeUsername").innerHTML += `<div class="Alert"><p>` + Alert.split("|")[1] + `</p></div>`
           setCookie("Alert", "", 0)
@@ -63,22 +62,29 @@
     <input name="Password" type="password" placeholder="Old Password" required>
     <span class="AlertContainer" id="ChangePassword"></span>
     <input type="submit" name="Type" value="Change Password">
+    <script>
+      var Alert = decodeURI(getCookie("Alert"))
+        if (Alert != "" && Alert.split("|")[0] == "Change Password") {
+          document.getElementById("ChangePassword").innerHTML += `<div class="Alert"><p>` + Alert.split("|")[1] + `</p></div>`
+          setCookie("Alert", "", 0)
+        }
+    </script>
 </form>
 <br>
 <form method="POST">
     <h1>Delete Account</h1>
     <input name="Password" type="password" placeholder="Password" required>
-    <span class="AlertContainer" id="Delete"></span>
+    <span class="AlertContainer" id="DeleteAccount"></span>
     <input type="submit" name="Type" value="Delete Account">
+    <script>
+      var Alert = decodeURI(getCookie("Alert"))
+      if (Alert != "" && Alert.split("|")[0] == "Delete Account") {
+        document.getElementById("DeleteAccount").innerHTML += `<div class="Alert"><p>` + Alert.split("|")[1] + `</p></div>`
+        setCookie("Alert", "", 0)
+      }
+    </script>
 </form>
-
-
-<script defer>
-    var LoginAlert = getCookie("Alert")
-    if (LoginAlert != "") {
-      var Txt = decodeURI(LoginAlert)
-      var Content = Txt.split("|")[1]
-      document.getElementById(Txt.split("|")[0])[0].innerHTML += `<div class="Alert"><p>` + Content + `</p></div>`
-      setCookie("Alert", "", 0)
-    }
-  </script>
+<br>
+<form method="POST">
+  <input type="submit" name="Type" value="Logout">
+</form>
