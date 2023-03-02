@@ -29,10 +29,10 @@
             setcookie("Account",bin2hex($Login["Username"] . "|" . $Login["Password"]), time() + 31536000000, "/");
             setcookie("Username",$_POST["Username"], time() + 31536000000, "/");
           } else {
-            setcookie("LoginAlert","Incorrect Username or Password", time() + 31536000000, "/");
+            setcookie("LoginAlert","Incorrect Password", time() + 31536000000, "/");
           }
         } else {
-          setcookie("LoginAlert","Incorrect Username or Password", time() + 31536000000, "/");
+          setcookie("LoginAlert","Incorrect Username", time() + 31536000000, "/");
         }
       } elseif ($_POST['Type'] == "Sign Up") {
         $Check = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex($_POST["Username"]) . "'", true);
