@@ -38,13 +38,9 @@
         $Check = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex($_POST["Username"]) . "'", true);
         if (count($Check) == 0) {
           if (preg_match("#^[a-zA-Z0-9]+$#", $_POST["Username"])) {
-            if (preg_match("#^[a-zA-Z0-9]+$#", $_POST["Password"])) {
-              $db->exec("INSERT INTO Users (Username, Password) VALUES('". bin2hex($_POST["Username"]) ."', '". bin2hex($_POST["Password"]) ."')");
-              setcookie("Account",bin2hex($_POST["Username"] . "|" . $_POST["Password"]), time() + 31536000000, "/");
-              setcookie("Username",$_POST["Username"], time() + 31536000000, "/");
-            } else {
-              setcookie("LoginAlert","Valid Chatacters A-Z and 0-9", time() + 31536000000, "/");
-            }
+            $db->exec("INSERT INTO Users (Username, Password) VALUES('". bin2hex($_POST["Username"]) ."', '". bin2hex($_POST["Password"]) ."')");
+            setcookie("Account",bin2hex($_POST["Username"] . "|" . $_POST["Password"]), time() + 31536000000, "/");
+            setcookie("Username",$_POST["Username"], time() + 31536000000, "/");
           } else {
             setcookie("LoginAlert","Valid Chatacters A-Z and 0-9", time() + 31536000000, "/");
           }
@@ -52,7 +48,7 @@
           setcookie("LoginAlert","Username all ready in use", time() + 31536000000, "/");
         }
       } elseif ($_POST["Type"] == "Change Username") {
-        $Account = $db->querySingle("SELECT * FROM Users WHERE Username='" . explode("|", hex2bin($_COOKIE["Account"]))[0] . "'", true);
+        $Account = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex(explode("|", hex2bin($_COOKIE["Account"]))[0]) . "'", true);
         if (bin2hex($_POST["Password"]) == $Account["Password"]) {
           if (preg_match("#^[a-zA-Z0-9]+$#", $_POST["Username"])) {
             $db->exec("UPDATE Users SET Username='" . bin2hex($_POST["Username"]) . "' WHERE Username='" . $Account["Username"] . "'");
