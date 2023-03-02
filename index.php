@@ -51,6 +51,19 @@
         } else {
           setcookie("LoginAlert","Username all ready in use", time() + 31536000000, "/");
         }
+      } elseif ($_POST["Type"] == "Change Username") {
+        $Account = $db->querySingle("SELECT * FROM Users WHERE Username='" . explode("|", hex2bin($_COOKIE["Account"]))[0] . "'", true);
+        if (bin2hex($_POST["Password"]) == $Account["Password"]) {
+          if (preg_match("#^[a-zA-Z0-9]+$#", $_POST["Username"])) {
+            $db->exec("UPDATE Users SET Username='" . bin2hex($_POST["Username"]) . "' WHERE Username='" . $Account["Username"] . "'");
+            setcookie("Account",bin2hex($_POST["Username"] . "|" . $Account["Password"]), time() + 31536000000, "/");
+            setcookie("Username",$_POST["Username"], time() + 31536000000, "/");
+          } else {
+            setcookie("Alert", "Change Username|Valid Chatacters A-Z and 0-9", time() + 31536000000, "/");
+          }
+        } else {
+          setcookie("Alert","Change Username|Incorrect Password", time() + 31536000000, "/");
+        }
       }
     }
     
