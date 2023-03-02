@@ -65,6 +65,18 @@
         } else {
           setcookie("Alert","Change Username|Incorrect Password", time() + 31536000000, "/");
         }
+      } else if ($_POST["Type"] == "Change Password") {
+        $Account = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex(explode("|", hex2bin($_COOKIE["Account"]))[0]) . "'", true);
+        if (bin2hex($_POST["Password"]) == $Account["Password"]) {
+          if ($_POST["NPassword"] == $_POST["RPassword"]) {
+            $db->exec("UPDATE Users SET Password='" . bin2hex($_POST["NPassword"]) . "' WHERE Username='" . $Account["Username"] . "'");
+            setcookie("Account",bin2hex($Account["Username"] . "|" . $_POST["NPassword"]), time() + 31536000000, "/");
+          } else {
+            setcookie("Alert","Change Username|Passwords do not match", time() + 31536000000, "/");
+          }
+        } else {
+          setcookie("Alert","Change Username|Incorrect Password", time() + 31536000000, "/");
+        }
       }
     }
     
