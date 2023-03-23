@@ -183,8 +183,8 @@
           if ($SplitPath[3] == "raw") {
             $FileName = "rawpost.html";
           }
-          $PostCreator = hex2bin($db->querySingle("SELECT * FROM Users WHERE Id='" . $PostData["CreatorId"] . "'", true)["Username"]);
-
+          $PostCreator = hex2bin($db->querySingle("SELECT * FROM Users WHERE Id='" . $PostData["CreatorId"] . "'", true)["Username"]) or $PostCreator = "[Deleted User]";
+          if ($PostCreator == "") { $PostCreator = "[Deleted User]"; }
           echo "<script>localStorage.setItem('PostTitle', '". hex2bin($PostData["Title"]) ."'); localStorage.setItem('PostContent', '". hex2bin($PostData["Content"]) ."'); localStorage.setItem('Creator', '". $PostCreator ."');</script>";
         }
       }
@@ -200,8 +200,8 @@
           $PostId = $row["Id"];
           $PostTitle = hex2bin($row["Title"]);
           $PostContent = hex2bin($row["Content"]);
-          $PostCreator = hex2bin($db->querySingle("SELECT * FROM Users WHERE Id='" . $row["CreatorId"] . "'", true)["Username"]);
-          
+          $PostCreator = hex2bin($db->querySingle("SELECT * FROM Users WHERE Id='" . $row["CreatorId"] . "'", true)["Username"]) or $PostCreator = "[Deleted User]";;
+          if ($PostCreator == "") { $PostCreator = "[Deleted User]"; }
           if (strlen($PostContent) >= 250) {
             $PostContent = substr($PostContent, 0, 250) . "...";
           }
@@ -217,8 +217,9 @@
       } else if (substr($Path, 0,6) == "/post/") {
         $LoginInfo = explode("|", hex2bin($_COOKIE["Account"]));
         $Account = $db->querySingle("SELECT * FROM Users WHERE Username='". bin2hex($_COOKIE["Username"]) ."'", true);
-        if ($Account["Password"] == bin2hex($LoginInfo[1])) {
+        if ($Account["Password"] == $LoginInfo[1]) {
           if (isset($Account["Admin"])) {
+            
             if ($Account["Admin"] == 1) {
               echo <<<EOD
               <style>
