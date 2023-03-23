@@ -11,7 +11,9 @@
     $db->exec("CREATE TABLE IF NOT EXISTS Users (
       Id INTEGER PRIMARY KEY AUTOINCREMENT,
       Username TEXT NOT NULL UNIQUE,
-      Password TEXT NOT NULL
+      Password TEXT NOT NULL,
+      Posts TEXT,
+      Admin INT
     )");
 
     $db->exec("CREATE TABLE IF NOT EXISTS Posts (
@@ -30,7 +32,7 @@
     if (isset($_POST['Type'])) {
       if ($_POST['Type'] == "Login") {
         $Login = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex($_POST["Username"]) . "'", true);
-        if (count($Login) == 3) {
+        if (count($Login) != 0) {
           if ($Login["Password"] == bin2hex($_POST["Password"])) {
             setcookie("Account",bin2hex($Login["Username"] . "|" . $Login["Password"]), time() + 31536000000, "/");
             setcookie("Username",$_POST["Username"], time() + 31536000000, "/");
@@ -44,7 +46,7 @@
         $Check = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex($_POST["Username"]) . "'", true);
         if (count($Check) == 0) {
           if (preg_match("#^[a-zA-Z0-9]+$#", $_POST["Username"])) {
-            $db->exec("INSERT INTO Users (Username, Password) VALUES('". bin2hex($_POST["Username"]) ."', '". bin2hex($_POST["Password"]) ."')");
+            $db->exec("INSERT INTO Users (Username, Password, Posts) VALUES('". bin2hex($_POST["Username"]) ."', '". bin2hex($_POST["Password"]) ."', '{\"Posts\":[]}')");
             setcookie("Account",bin2hex($_POST["Username"] . "|" . $_POST["Password"]), time() + 31536000000, "/");
             setcookie("Username",$_POST["Username"], time() + 31536000000, "/");
           } else {
@@ -95,9 +97,14 @@
       } else if ($_POST["Type"] == "Logout") {
         setcookie("Account","", 0, "/");
         setcookie("Username","", 0, "/");
+      } else if ($_POST["Type"] == "Post!") {
+        $LoginInfo = explode("|", hex2bin($_COOKIE["Account"]));
+        $Account = $db->querySingle("SELECT * FROM Users WHERE Username='". bin2hex($_COOKIE["Username"]) ."'", true);
+        if ($Account["Password"] == bin2hex($LoginInfo[1])) {
+          $db->exec("INSERT INTO Posts (CreatorId, Title, Content) VALUES(". $Account["Id"] .", '". bin2hex($_POST["Title"]) ."', '". bin2hex($_POST["Content"]) ."')");
+        }
       }
     }
-    
   }
 ?>
 
@@ -140,7 +147,7 @@
         </nav>
         `
         if (getCookie("Account")) {
-          document.getElementsByTagName("nav")[0].innerHTML += `/ <a href="../my-posts">My Posts</a> / <a href="../create-post">Create Post</a>`
+          document.getElementsByTagName("nav")[0].innerHTML += `/ <a href="../my-posts/">My Posts</a> / <a href="../create-post/">Create Post</a>`
           document.getElementsByTagName("Header")[0].innerHTML += Account
         } else {
           document.getElementsByTagName("Header")[0].innerHTML += Login
@@ -160,9 +167,14 @@
         $FileName = "login.html";
       } elseif ($Path == "/account/") {
         $FileName = "account.html";
-      } else if (str_contains($Path, "/post/")) {
+      } else if ($Path == "/discover/") {
+        $FileName = "discover.html";
+      } else if ($Path == "/create-post/") {
+        $FileName = "createpost.html";
+      } else if ($Path == "/my-posts/"){
+        $FileName = "myposts.html";
+      } else if (substr($Path, 0,6) == "/post/") {
         $SplitPath = explode("/", $Path);
-
         $PostId = $SplitPath[2];
           
         $PostData = $db->querySingle("SELECT * FROM Posts WHERE Id=" . $PostId, true);
@@ -171,13 +183,60 @@
           if ($SplitPath[3] == "raw") {
             $FileName = "rawpost.html";
           }
-          echo "<script>localStorage.setItem('PostTitle', '". $PostData["Title"] ."'); localStorage.setItem('PostContent', '". $PostData["Content"] ."');</script>";
+          $PostCreator = hex2bin($db->querySingle("SELECT * FROM Users WHERE Id='" . $PostData["CreatorId"] . "'", true)["Username"]);
+
+          echo "<script>localStorage.setItem('PostTitle', '". hex2bin($PostData["Title"]) ."'); localStorage.setItem('PostContent', '". hex2bin($PostData["Content"]) ."'); localStorage.setItem('Creator', '". $PostCreator ."');</script>";
         }
       }
 
-      $File = fopen($FileName, "r") or die("Unable to open file!");
+      $File = fopen($FileName, "r") or $File = fopen("404.html", "r") or die("Unable to open file!");
       echo fread($File,filesize($FileName));
       fclose($File);
+      
+      if ($Path == "/discover/") {
+
+        $PostData = $db->query("SELECT * FROM Posts");
+        while ($row = $PostData->fetchArray()) {
+          $PostId = $row["Id"];
+          $PostTitle = hex2bin($row["Title"]);
+          $PostContent = hex2bin($row["Content"]);
+          $PostCreator = hex2bin($db->querySingle("SELECT * FROM Users WHERE Id='" . $row["CreatorId"] . "'", true)["Username"]);
+          
+          if (strlen($PostContent) >= 250) {
+            $PostContent = substr($PostContent, 0, 250) . "...";
+          }
+
+          echo <<<EOD
+        <div onclick="location.href = '../post/$PostId'" class="Post">
+          <h2>$PostTitle</h2>
+          <blockquote>$PostContent</blockquote>
+          <p>By: $PostCreator</p>
+        </div><br>
+        EOD;
+        }
+      } else if (substr($Path, 0,6) == "/post/") {
+        $LoginInfo = explode("|", hex2bin($_COOKIE["Account"]));
+        $Account = $db->querySingle("SELECT * FROM Users WHERE Username='". bin2hex($_COOKIE["Username"]) ."'", true);
+        if ($Account["Password"] == bin2hex($LoginInfo[1])) {
+          if (isset($Account["Admin"])) {
+            if ($Account["Admin"] == 1) {
+              echo <<<EOD
+              <style>
+                #DeletePost {
+                  background-color: #ff5555;
+                }
+                #DeletePost:hover {
+                  background-color: #aa0000;
+                }
+              </style>
+              <form method="POST">
+                <input id="DeletePost" type="submit" name="Type" value="Delete Post">
+              </form>
+              EOD;
+            }
+          }
+        }
+      }
     ?>
     
   </body>

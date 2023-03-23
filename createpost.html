@@ -1,0 +1,32 @@
+<style>
+    #Title {
+        width: 100%;
+        height: 50px;
+        text-align: center;
+        font-size: 40px;
+    }
+    #Content {
+        width: 100%;
+        min-width: 100%;
+        min-height: 25rem;
+    }
+    #Post {
+        width: 100%;
+    }
+</style>
+
+<script>
+    if (getCookie("Account") == "") {
+        location.href = "../"
+    }
+</script>
+
+<h1 style="width: 100%; text-align: center;">Create Post</h1>
+<br>
+<form method="post">
+    <input type="text" id="Title" name="Title" placeholder="Post Title" required>
+    <br>
+    <textarea id="Content" name="Content" id="Content" placeholder="Post Content"></textarea>
+    <br>
+    <input id="Post" type="submit" name="Type" value="Post!">
+</form>
