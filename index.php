@@ -1,10 +1,10 @@
 <?php
-  class MyDB extends SQLite3 {
+  class SqLite extends SQLite3 {
     function __construct() {
       $this->open('database.db');
     }
   }
-  $db = new MyDB();
+  $db = new SqLite();
   if(!$db) {
     echo $db->lastErrorMsg();
   } else {
