@@ -22,11 +22,6 @@
       Content TEXT NOT NULL
     )");
 
-    #$rep = $db->exec("INSERT INTO Users (Username, Password) VALUES('1Brenny1', '69420')");
-
-    #echo var_dump($db->querySingle("SELECT * FROM Users WHERE Username='1Brenny1'", true));
-    
-    
 
     if (isset($_POST['Type'])) {
       if ($_POST['Type'] == "Login") {
