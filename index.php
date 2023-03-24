@@ -41,7 +41,7 @@
         if (count($Check) == 0) {
           if (preg_match("#^[a-zA-Z0-9]+$#", $_POST["Username"])) {
             $db->exec("INSERT INTO Users (Username, Password) VALUES('". bin2hex($_POST["Username"]) ."', '". bin2hex($_POST["Password"]) ."')");
-            setcookie("Account",bin2hex($_POST["Username"] . "|" . $_POST["Password"]), time() + 31536000000, "/");
+            setcookie("Account",bin2hex(bin2hex($_POST["Username"]) . "|" . bin2hex($_POST["Password"])), time() + 31536000000, "/");
             setcookie("Username",$_POST["Username"], time() + 31536000000, "/");
           } else {
             setcookie("LoginAlert","Valid Chatacters A-Z and 0-9", time() + 31536000000, "/");
@@ -119,7 +119,6 @@
     }
   }
 ?>
-
 
 <html>
   <head>
