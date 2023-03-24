@@ -12,7 +12,6 @@
       Id INTEGER PRIMARY KEY AUTOINCREMENT,
       Username TEXT NOT NULL UNIQUE,
       Password TEXT NOT NULL,
-      Posts TEXT,
       Admin INT
     )");
 
@@ -46,7 +45,7 @@
         $Check = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex($_POST["Username"]) . "'", true);
         if (count($Check) == 0) {
           if (preg_match("#^[a-zA-Z0-9]+$#", $_POST["Username"])) {
-            $db->exec("INSERT INTO Users (Username, Password, Posts) VALUES('". bin2hex($_POST["Username"]) ."', '". bin2hex($_POST["Password"]) ."', '{\"Posts\":[]}')");
+            $db->exec("INSERT INTO Users (Username, Password) VALUES('". bin2hex($_POST["Username"]) ."', '". bin2hex($_POST["Password"]) ."')");
             setcookie("Account",bin2hex($_POST["Username"] . "|" . $_POST["Password"]), time() + 31536000000, "/");
             setcookie("Username",$_POST["Username"], time() + 31536000000, "/");
           } else {
@@ -100,8 +99,26 @@
       } else if ($_POST["Type"] == "Post!") {
         $LoginInfo = explode("|", hex2bin($_COOKIE["Account"]));
         $Account = $db->querySingle("SELECT * FROM Users WHERE Username='". bin2hex($_COOKIE["Username"]) ."'", true);
-        if ($Account["Password"] == bin2hex($LoginInfo[1])) {
+        if ($Account["Password"] == $LoginInfo[1]) {
           $db->exec("INSERT INTO Posts (CreatorId, Title, Content) VALUES(". $Account["Id"] .", '". bin2hex($_POST["Title"]) ."', '". bin2hex($_POST["Content"]) ."')");
+          $Post = $db->querySingle("SELECT * FROM Posts ORDER BY Id DESC LIMIT 1", true);
+          echo "<script>location.href = '../post/". $Post["Id"] ."'</script>";
+        } else {
+          setcookie("Alert","Post|Failed to verify account", time() + 31536000000, "/");
+        }
+      } else if ($_POST["Type"] == "Delete Post") {
+        $LoginInfo = explode("|", hex2bin($_COOKIE["Account"]));
+        $Account = $db->querySingle("SELECT * FROM Users WHERE Username='". bin2hex($_COOKIE["Username"]) ."'", true);
+        if ($Account["Password"] == $LoginInfo[1]) {
+          $URL = parse_url("http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+          $Path = $URL['path'];
+          $SplitPath = explode("/", $Path);
+          $PostId = $SplitPath[2];
+          $PostInfo = $db->querySingle("SELECT * FROM Posts WHERE Id=" . $PostId,true);
+          if ($Account["Admin"] == 1 || $Account["Id"] == $PostInfo["CreatorId"]) {
+            $db->exec("DELETE FROM Posts WHERE Id=" . $PostId);
+            echo "<script>location.href = '../home/'</script>";
+          }
         }
       }
     }
@@ -200,7 +217,7 @@
           $PostId = $row["Id"];
           $PostTitle = hex2bin($row["Title"]);
           $PostContent = hex2bin($row["Content"]);
-          $PostCreator = hex2bin($db->querySingle("SELECT * FROM Users WHERE Id='" . $row["CreatorId"] . "'", true)["Username"]) or $PostCreator = "[Deleted User]";;
+          $PostCreator = hex2bin($db->querySingle("SELECT * FROM Users WHERE Id='" . $row["CreatorId"] . "'", true)["Username"]) or $PostCreator = "[Deleted User]";
           if ($PostCreator == "") { $PostCreator = "[Deleted User]"; }
           if (strlen($PostContent) >= 250) {
             $PostContent = substr($PostContent, 0, 250) . "...";
@@ -215,26 +232,57 @@
         EOD;
         }
       } else if (substr($Path, 0,6) == "/post/") {
+        if ($FileName != "post.html") {return;}
         $LoginInfo = explode("|", hex2bin($_COOKIE["Account"]));
         $Account = $db->querySingle("SELECT * FROM Users WHERE Username='". bin2hex($_COOKIE["Username"]) ."'", true);
         if ($Account["Password"] == $LoginInfo[1]) {
-          if (isset($Account["Admin"])) {
-            
-            if ($Account["Admin"] == 1) {
-              echo <<<EOD
-              <style>
-                #DeletePost {
-                  background-color: #ff5555;
-                }
-                #DeletePost:hover {
-                  background-color: #aa0000;
-                }
-              </style>
-              <form method="POST">
-                <input id="DeletePost" type="submit" name="Type" value="Delete Post">
-              </form>
-              EOD;
+          $URL = parse_url("http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+          $Path = $URL['path'];
+          $SplitPath = explode("/", $Path);
+          $PostId = $SplitPath[2];
+          $PostInfo = $db->querySingle("SELECT * FROM Posts WHERE Id=" . $PostId,true);
+          if ($Account["Admin"] == 1 || $Account["Id"] == $PostInfo["CreatorId"]) {
+            echo <<<EOD
+            <style>
+              form {
+                display: inline-block;
+              }
+              #DeletePost {
+                background-color: #ff5555;
+                display: inline-block;
+              }
+              #DeletePost:hover {
+                background-color: #aa0000;
+              }
+            </style>
+            <form method="POST">
+              <input id="DeletePost" type="submit" name="Type" value="Delete Post">
+            </form>
+            EOD;
+          }
+        }
+      } else if ($Path == "/my-posts/") {
+        $LoginInfo = explode("|", hex2bin($_COOKIE["Account"]));
+        $Account = $db->querySingle("SELECT * FROM Users WHERE Username='". bin2hex($_COOKIE["Username"]) ."'", true);
+        if ($Account["Password"] == $LoginInfo[1]) {
+          $Posts = $db->query("SELECT * FROM Posts WHERE CreatorId=". $Account["Id"]);
+          while ($row = $Posts->fetchArray()) {
+            $PostId = $row["Id"];
+            $PostTitle = hex2bin($row["Title"]);
+            $PostContent = hex2bin($row["Content"]);
+            $PostCreator = hex2bin($db->querySingle("SELECT * FROM Users WHERE Id='" . $row["CreatorId"] . "'", true)["Username"]) or $PostCreator = "[Deleted User]";
+            if ($PostCreator == "") { $PostCreator = "[Deleted User]"; }
+            if (strlen($PostContent) >= 250) {
+              $PostContent = substr($PostContent, 0, 250) . "...";
             }
+
+            echo <<<EOD
+            <div onclick="location.href = '../post/$PostId'" class="Post">
+              <h2>$PostTitle</h2>
+              <blockquote>$PostContent</blockquote>
+              <p>By: $PostCreator</p>
+            </div><br>
+            EOD;
           }
         }
       }

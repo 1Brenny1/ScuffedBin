@@ -1,7 +1,7 @@
 <h1 style="width: 100%; text-align: center;" id="Title"></h1>
 <p style="width: 100%" id="Creator"></p>
 <blockquote style="width: 100%;" id="Content"></blockquote>
-
+<button onclick="location.href += '/raw/'" style="display:inline-block;">View Raw</button>
 <script defer>
     document.getElementById("Title").innerHTML = localStorage.getItem("PostTitle")
     document.getElementById("Content").innerHTML = localStorage.getItem("PostContent")

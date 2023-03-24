@@ -13,6 +13,21 @@
     #Post {
         width: 100%;
     }
+
+    .Alert {
+      background-color:#ff5555;
+      width: 100%;
+      height: 25px;
+      margin-bottom: 0.5em;
+      border-radius: 5px;
+    }
+    .Alert p {
+      width: 100%;
+      text-align: center;
+    }
+    .AlertContainer {
+      width: 100%;
+    }
 </style>
 
 <script>
@@ -28,5 +43,15 @@
     <br>
     <textarea id="Content" name="Content" id="Content" placeholder="Post Content"></textarea>
     <br>
+    <span id="AlertContainer"></span>
     <input id="Post" type="submit" name="Type" value="Post!">
+
+    <script>
+
+        var Alert = decodeURI(getCookie("Alert"))
+        if (Alert != "" && Alert.split("|")[0] == "Post") {
+          document.getElementById("AlertContainer").innerHTML += `<div class="Alert"><p>` + Alert.split("|")[1] + `</p></div>`
+          setCookie("Alert", "", 0)
+        }
+    </script>
 </form>

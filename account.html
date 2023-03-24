@@ -45,14 +45,14 @@
     <span class="AlertContainer" id="ChangeUsername"></span>
     <input type="submit" name="Type" value="Change Username">
     <script>
-        document.getElementById("Username").value = getCookie("Username")
+      document.getElementById("Username").value = getCookie("Username")
 
-        var Alert = decodeURI(getCookie("Alert"))
-        if (Alert != "" && Alert.split("|")[0] == "Change Username") {
-          document.getElementById("ChangeUsername").innerHTML += `<div class="Alert"><p>` + Alert.split("|")[1] + `</p></div>`
-          setCookie("Alert", "", 0)
-        }
-    </script>
+      var Alert = decodeURI(getCookie("Alert"))
+      if (Alert != "" && Alert.split("|")[0] == "Change Username") {
+        document.getElementById("ChangeUsername").innerHTML += `<div class="Alert"><p>` + Alert.split("|")[1] + `</p></div>`
+        setCookie("Alert", "", 0)
+      }
+  </script>
 </form>
 <br>
 <form method="POST">
