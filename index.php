@@ -196,7 +196,8 @@
           }
           $PostCreator = hex2bin($db->querySingle("SELECT * FROM Users WHERE Id='" . $PostData["CreatorId"] . "'", true)["Username"]) or $PostCreator = "[Deleted User]";
           if ($PostCreator == "") { $PostCreator = "[Deleted User]"; }
-          echo "<script>localStorage.setItem('PostTitle', '". hex2bin($PostData["Title"]) ."'); localStorage.setItem('PostContent', '". hex2bin($PostData["Content"]) ."'); localStorage.setItem('Creator', '". $PostCreator ."');</script>";
+          $PostContent = strip_tags(hex2bin($PostData["Content"]));
+          echo "<script>localStorage.setItem('PostTitle', '". hex2bin($PostData["Title"]) ."'); localStorage.setItem('PostContent', '". $PostContent ."'); localStorage.setItem('Creator', '". $PostCreator ."');</script>";
         }
       }
 
@@ -216,6 +217,11 @@
           if (strlen($PostContent) >= 250) {
             $PostContent = substr($PostContent, 0, 250) . "...";
           }
+
+          $PostContent = strip_tags($PostContent);
+          $PostContent = htmlentities($PostContent);
+          $PostTitle = htmlentities($PostTitle);
+          $PostCreator = htmlentities($PostCreator);
 
           echo <<<EOD
         <div onclick="location.href = '../post/$PostId'" class="Post">
@@ -269,6 +275,11 @@
             if (strlen($PostContent) >= 250) {
               $PostContent = substr($PostContent, 0, 250) . "...";
             }
+
+            $PostContent = strip_tags($PostContent);
+            $PostContent = htmlentities($PostContent);
+            $PostTitle = htmlentities($PostTitle);
+            $PostCreator = htmlentities($PostCreator);
 
             echo <<<EOD
             <div onclick="location.href = '../post/$PostId'" class="Post">

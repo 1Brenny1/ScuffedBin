@@ -3,7 +3,7 @@
 <blockquote style="width: 100%;" id="Content"></blockquote>
 <button onclick="location.href += '/raw/'" style="display:inline-block;">View Raw</button>
 <script defer>
-    document.getElementById("Title").innerHTML = localStorage.getItem("PostTitle")
-    document.getElementById("Content").innerHTML = localStorage.getItem("PostContent")
+    document.getElementById("Title").innerHTML = localStorage.getItem("PostTitle").replace(/</g, "&lt;")
+    document.getElementById("Content").innerHTML = localStorage.getItem("PostContent").replace(/</g, "&lt;")
     document.getElementById("Creator").innerHTML = "By: " + localStorage.getItem("Creator")
 </script>
