@@ -1,3 +1,16 @@
+<style>
+    .Admin {
+        background-color: #ff5555;
+        border: none;
+        border-radius: 15px;
+        color: #fff;
+        text-align: center;
+        max-width: 5rem;
+        min-width: 5rem;
+        display: inline-block;
+    }
+</style>
+
 <h1 style="width: 100%; text-align: center;" id="Title"></h1>
 <p style="width: 100%" id="Creator"></p>
 <blockquote style="width: 100%;" id="Content"></blockquote>
@@ -6,4 +19,7 @@
     document.getElementById("Title").innerHTML = localStorage.getItem("PostTitle").replace(/</g, "&lt;")
     document.getElementById("Content").innerHTML = localStorage.getItem("PostContent").replace(/</g, "&lt;")
     document.getElementById("Creator").innerHTML = "By: " + localStorage.getItem("Creator")
+    if (localStorage.getItem("Admin") == "1") {
+        document.getElementById("Creator").innerHTML += " <p class='Admin'>Admin</p>"
+    }
 </script>

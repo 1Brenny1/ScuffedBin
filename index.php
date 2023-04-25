@@ -206,11 +206,13 @@ EOD;
         $PostData = $db->querySingle("SELECT * FROM Posts WHERE Id=" . $PostId, true);
         if (count($PostData) != 0) {
           $FileName = "post.html";
-          $PostCreator = hex2bin($db->querySingle("SELECT * FROM Users WHERE Id='" . $PostData["CreatorId"] . "'", true)["Username"]) or $PostCreator = "[Deleted User]";
+          $PostAccount = $db->querySingle("SELECT * FROM Users WHERE Id='" . $PostData["CreatorId"] . "'", true);
+          $PostCreator = hex2bin($PostAccount["Username"]) or $PostCreator = "[Deleted User]";
           if ($PostCreator == "") { $PostCreator = "[Deleted User]"; }
           $PostContent = strip_tags(hex2bin($PostData["Content"]));
+          $Admin = ($PostAccount["Admin"] == 1);
           if (!$Raw) {
-          echo "<script>localStorage.setItem('PostTitle', '". hex2bin($PostData["Title"]) ."'); localStorage.setItem('PostContent', '". $PostContent ."'); localStorage.setItem('Creator', '". $PostCreator ."');</script>";
+          echo "<script>localStorage.setItem('PostTitle', '". hex2bin($PostData["Title"]) ."'); localStorage.setItem('PostContent', '". $PostContent ."'); localStorage.setItem('Creator', '". $PostCreator ."'); localStorage.setItem('Admin', '". $Admin ."');</script>";
           } else {
             echo $PostContent;
           }
@@ -229,7 +231,8 @@ EOD;
           $PostId = $row["Id"];
           $PostTitle = hex2bin($row["Title"]);
           $PostContent = hex2bin($row["Content"]);
-          $PostCreator = hex2bin($db->querySingle("SELECT * FROM Users WHERE Id='" . $row["CreatorId"] . "'", true)["Username"]) or $PostCreator = "[Deleted User]";
+          $PostAccount = $db->querySingle("SELECT * FROM Users WHERE Id='" . $PostId . "'", true);
+          $PostCreator = hex2bin($PostAccount["Username"]) or $PostCreator = "[Deleted User]";
           if ($PostCreator == "") { $PostCreator = "[Deleted User]"; }
           if (strlen($PostContent) >= 250) {
             $PostContent = substr($PostContent, 0, 250) . "...";
@@ -240,11 +243,16 @@ EOD;
           $PostTitle = htmlentities($PostTitle);
           $PostCreator = htmlentities($PostCreator);
 
+          $Admin = "";
+          if ($PostAccount["Admin"] == 1) {
+            $Admin = "<p class='Admin'>Admin</p>";
+          }
+
           echo <<<EOD
         <div onclick="location.href = '../post/$PostId'" class="Post">
           <h2>$PostTitle</h2>
           <blockquote>$PostContent</blockquote>
-          <p>By: $PostCreator</p>
+          <p>By: $PostCreator$Admin</p>
         </div><br>
         EOD;
         }
