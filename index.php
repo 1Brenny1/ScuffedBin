@@ -22,7 +22,11 @@
       Content TEXT NOT NULL
     )");
 
-
+    $URL = parse_url("http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+    $Path = $URL['path'];
+    $SplitPath = explode("/", $Path);
+    $Raw = ($SplitPath[3] == "raw");
+    
     if (isset($_POST['Type'])) {
       if ($_POST['Type'] == "Login") {
         $Login = $db->querySingle("SELECT * FROM Users WHERE Username='" . bin2hex($_POST["Username"]) . "'", true);
@@ -119,8 +123,9 @@
     }
   }
 ?>
-
-<html>
+<?php
+  $Head1 = <<<EOD
+  <html>
   <head>
     <title>Scuffed Bin</title>
 
@@ -128,13 +133,21 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css">
     <link rel="stylesheet" href="https://newcss.net/theme/night.css">
     <script>
-    <?php
-      $Cookie = fopen("Cookies.js", "r");
-      echo fread($Cookie, filesize("Cookies.js"));
-      fclose($Cookie);
+  EOD;
+  if (!$Raw) {
+    echo $Head1;
+  }
     ?>
+    <?php
+      if (!$Raw) {
+        $Cookie = fopen("Cookies.js", "r");
+        echo fread($Cookie, filesize("Cookies.js"));
+        fclose($Cookie);
+      }
+    ?>
+    <?php
+    $Head2 = <<<EOD
     </script>
-    
   </head>
   <body>
     <header>
@@ -165,10 +178,12 @@
         }
       </script>
     </header>
-
+EOD;
+    if (!$Raw) {
+      echo $Head2;
+    }
+    ?>
     <?php
-      $URL = parse_url("http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
-      $Path = $URL['path'];
 
       $FileName = "404.html";
       if ($Path == "" || $Path == "/" || $Path == "/home/") {
@@ -191,19 +206,21 @@
         $PostData = $db->querySingle("SELECT * FROM Posts WHERE Id=" . $PostId, true);
         if (count($PostData) != 0) {
           $FileName = "post.html";
-          if ($SplitPath[3] == "raw") {
-            $FileName = "rawpost.html";
-          }
           $PostCreator = hex2bin($db->querySingle("SELECT * FROM Users WHERE Id='" . $PostData["CreatorId"] . "'", true)["Username"]) or $PostCreator = "[Deleted User]";
           if ($PostCreator == "") { $PostCreator = "[Deleted User]"; }
           $PostContent = strip_tags(hex2bin($PostData["Content"]));
+          if (!$Raw) {
           echo "<script>localStorage.setItem('PostTitle', '". hex2bin($PostData["Title"]) ."'); localStorage.setItem('PostContent', '". $PostContent ."'); localStorage.setItem('Creator', '". $PostCreator ."');</script>";
+          } else {
+            echo $PostContent;
+          }
         }
       }
-
+      if (!$Raw) {
       $File = fopen($FileName, "r") or $File = fopen("404.html", "r") or die("Unable to open file!");
       echo fread($File,filesize($FileName));
       fclose($File);
+      }
       
       if ($Path == "/discover/") {
 
@@ -232,7 +249,7 @@
         EOD;
         }
       } else if (substr($Path, 0,6) == "/post/") {
-        if ($FileName != "post.html") {return;}
+        if ($FileName != "post.html" or $Raw) {return;}
         $LoginInfo = explode("|", hex2bin($_COOKIE["Account"]));
         $Account = $db->querySingle("SELECT * FROM Users WHERE Username='". bin2hex($_COOKIE["Username"]) ."'", true);
         if ($Account["Password"] == $LoginInfo[1]) {
