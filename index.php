@@ -226,12 +226,12 @@ EOD;
       
       if ($Path == "/discover/") {
 
-        $PostData = $db->query("SELECT * FROM Posts");
+        $PostData = $db->query("SELECT * FROM Posts ORDER BY Id DESC");
         while ($row = $PostData->fetchArray()) {
           $PostId = $row["Id"];
           $PostTitle = hex2bin($row["Title"]);
           $PostContent = hex2bin($row["Content"]);
-          $PostAccount = $db->querySingle("SELECT * FROM Users WHERE Id='" . $PostId . "'", true);
+          $PostAccount = $db->querySingle("SELECT * FROM Users WHERE Id='" . $row["CreatorId"] . "'", true);
           $PostCreator = hex2bin($PostAccount["Username"]) or $PostCreator = "[Deleted User]";
           if ($PostCreator == "") { $PostCreator = "[Deleted User]"; }
           if (strlen($PostContent) >= 250) {
@@ -290,7 +290,7 @@ EOD;
         $LoginInfo = explode("|", hex2bin($_COOKIE["Account"]));
         $Account = $db->querySingle("SELECT * FROM Users WHERE Username='". bin2hex($_COOKIE["Username"]) ."'", true);
         if ($Account["Password"] == $LoginInfo[1]) {
-          $Posts = $db->query("SELECT * FROM Posts WHERE CreatorId=". $Account["Id"]);
+          $Posts = $db->query("SELECT * FROM Posts WHERE CreatorId=". $Account["Id"] . " ORDER BY Id DESC");
           while ($row = $Posts->fetchArray()) {
             $PostId = $row["Id"];
             $PostTitle = hex2bin($row["Title"]);
@@ -305,22 +305,25 @@ EOD;
             $PostContent = htmlentities($PostContent);
             $PostTitle = htmlentities($PostTitle);
             $PostCreator = htmlentities($PostCreator);
+            
+            $Admin = "";
+            if ($Account["Admin"] == 1) {
+              $Admin = "<p class='Admin'>Admin</p>";
+            }
 
             echo <<<EOD
             <div onclick="location.href = '../post/$PostId'" class="Post">
               <h2>$PostTitle</h2>
               <blockquote>$PostContent</blockquote>
-              <p>By: $PostCreator</p>
+              <p>By: $PostCreator$Admin</p>
             </div><br>
             EOD;
           }
         }
       }
     ?>
-    
   </body>
 </html>
-
 <?php
   $db->close();
 ?>
